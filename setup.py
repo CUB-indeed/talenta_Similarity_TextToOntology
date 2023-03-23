@@ -5,7 +5,7 @@ setup(
     packages=find_packages(),
     version='0.1.0',
     description='Test',
-    author='Kritkorn Supyen',
+    author='Indeed',
     license='MIT',
     install_requires=[],
     setup_requires=[
