@@ -24,8 +24,10 @@ jobs:
 #         pip install build
 #         pip install twine
     - name: Print
+      env:
+        PYPI_URL: ${{ vars.PYPI_URL }}
       run: |
-        echo "${{ vars.PYPI_URL }}"
+        echo "$PYPI_URL"
         echo "test test"
 #     - name: Publish package
 #       env:
