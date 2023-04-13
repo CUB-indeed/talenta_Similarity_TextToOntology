@@ -4,11 +4,13 @@ import warnings
 import numpy as np
 from tqdm import tqdm
 
-from .modules.levenshtein import LevenshteinSimilarity
-from .modules.jaccard import JaccardSimilarity
-from .modules.sequence import SequenceSimilarity
-from .modules.bert import BertTransformerSimilarity
-from .modules.spacy import SpacyTransformerSimilarity
+from .modules import (
+    LevenshteinSimilarity,
+    JaccardSimilarity,
+    SequenceSimilarity,
+    BertTransformerSimilarity,
+    SpacyTransformerSimilarity
+)
 
 DEFAULT_SIMPIPELINE = [
         LevenshteinSimilarity,
