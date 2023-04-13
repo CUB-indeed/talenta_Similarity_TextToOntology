@@ -35,8 +35,8 @@ jobs:
       run: python -m build
     - name: Publish package
       env:
-        pypi_username: ${{ secrets.pypi_credential }}
-        pypi_password: ${{ secrets.pypi_credential }}
+        pypi_username: ${{ secrets.pypi_username }}
+        pypi_password: ${{ secrets.pypi_password }}
       run: |
         twine upload --repository-url [pypiserver] dist/* --verbose -u $pypi_username -p $pypi_password
 
