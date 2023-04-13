@@ -39,6 +39,8 @@ jobs:
         pypi_password: ${{ secrets.pypi_credential }}
       run: |
         twine upload --repository-url [pypiserver] dist/* --verbose -u $pypi_username -p $pypi_password
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+
+        
+        
+        
+        
