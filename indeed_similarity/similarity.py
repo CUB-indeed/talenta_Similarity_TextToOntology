@@ -1,17 +1,22 @@
-from typing import Any, List, Tuple, Union
+from typing import List, Union
 
-import spacy
-import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from difflib import SequenceMatcher
-from Levenshtein import ratio as LevenshteinRatio
-from sentence_transformers import SentenceTransformer, util
-
-# Ignore warnings of spacy
 import warnings
-warnings.filterwarnings("ignore", message=r"\[W008\]", category=UserWarning)
+import numpy as np
+from tqdm import tqdm
+
+from .modules.levenshtein import LevenshteinSimilarity
+from .modules.jaccard import JaccardSimilarity
+from .modules.sequence import SequenceSimilarity
+from .modules.bert import BertTransformerSimilarity
+from .modules.spacy import SpacyTransformerSimilarity
+
+DEFAULT_SIMPIPELINE = [
+        LevenshteinSimilarity,
+        JaccardSimilarity,
+        SequenceSimilarity,
+        BertTransformerSimilarity,
+        SpacyTransformerSimilarity
+    ]
 
 class SimilarityPipeline:
     """
@@ -20,112 +25,71 @@ class SimilarityPipeline:
     Args:
         - similarity_functions: A list of similarity funtions based on BaseSimilarity Class
     """
-    def __init__(self, similarity_functions:List) -> None:
-        self.similarity_functions = similarity_functions
+    def __init__(
+        self,
+        a:Union[np.array, List],
+        b:Union[np.array, List],
+        similarity_functions:List = None, 
+        preprocessing_functions:List = None,
+        postprocessing_functions:List = None,
+        ) -> None:
+        self.similarity_functions = similarity_functions if similarity_functions is not None else DEFAULT_SIMPIPELINE
+        self.a, self.b = a, b
+        if preprocessing_functions is not None:
+            for preprocessing_function in preprocessing_functions:
+                a, b = list(map(preprocessing_function, a)), list(map(preprocessing_function, b))
+        self.pre_a, self.pre_b = a, b
+        self.sim_results = self(a, b)
+        if postprocessing_functions is not None:
+            if preprocessing_functions is None: warnings.warn("There are no transform functions. Please make sure that it is user's intention.")
+            sim_mat_temp = self.sim_results[self.similarity_functions[0].__name__].df_sim
+            # Get all indexes and columns
+            indexes = {text: text for text in sim_mat_temp.index}
+            columns = {text: text for text in sim_mat_temp.columns}
+            for postprocessing_function in postprocessing_functions:
+                # Inverse transform indexes and columns
+                indexes = {key: postprocessing_function(text) for key, text in indexes.items()}
+                columns = {key: postprocessing_function(text) for key, text in columns.items()}
+            for similarity_function in similarity_functions:
+                self.sim_results[similarity_function.__name__].df_sim.rename(index=indexes, inplace=True)
+                self.sim_results[similarity_function.__name__].df_sim.rename(columns=columns, inplace=True)
+        self.post_a = list(self.sim_results[self.similarity_functions[0].__name__].df_sim.index)
+        self.post_b = list(self.sim_results[self.similarity_functions[0].__name__].df_sim.columns)
 
     def __len__(self):
         return len(self.similarity_functions)
 
     def __call__(self, a:Union[np.array, List], b:Union[np.array, List]):
-        results = {}
-        for func in self.similarity_functions:
-            results[func.__name__] = func(a, b)
-        return results
-
-
-class BaseSimilarity:    
-    """
-    Find the similarity between 2 lists of string
-
-    Args:
-        - a: the first list of string
-        - b: the second list of string
-    """
-    def __init__(self, a:Union[np.array, List], b:Union[np.array, List]) -> None:
-        self.checkInputType(a)
-        self.checkInputType(b)
-        self.a = a
-        self.b = b
+        sim_results = {}
+        pbar = tqdm(self.similarity_functions)
+        for func in pbar:
+            sim_results[func.__name__] = func(a, b)
+            pbar.set_description(f"Processing {func.__name__}")
+        return sim_results
 
     @staticmethod
-    def checkInputType(value):
-        assert isinstance(value, (list, np.array)), "The input must be either a list or numpy array"
-        assert len(value) > 0 , "The list or numpy array is empthy"
-
-    def preprocess(self, a, b):
-        return a, b
-
-    def similarity_matrix(self, similarity_func:Any) -> pd.DataFrame:
-        a, b = self.preprocess(self.a, self.b)
-        arr_sim = np.zeros((len(a), len(b)))  # Create empty matrix to fill
-
-        for i, text1 in enumerate(a):
-            for j, text2 in enumerate(b):
-                arr_sim[i, j] = similarity_func(text1, text2)
-        self.df_sim = pd.DataFrame(arr_sim, columns=self.b, index=self.a)
-        return self.df_sim
+    def mat_sim2stack(mat):
+        df = mat.stack().reset_index()
+        df.columns = ["onto1", "onto2", "confidence"]
+        return df
     
-    def plot(self, threshold:int=1):
-        assert self.df_sim is not None, "The value of similarity matrix is None"
-        df_plot = self.df_sim[self.df_sim<=threshold].fillna(0)
-        return sns.heatmap(df_plot)
+    @property
+    def sim_mat(self):
+        return dict((name, sim_result.df_sim) for name, sim_result in self.sim_results.items())
 
+    @property
+    def sim_mat_stack(self):
+        return dict((name, self.mat_sim2stack(sim_result.df_sim)) for name, sim_result in self.sim_results.items())
 
-class LevenshteinSimilarity(BaseSimilarity):
-    def __init__(self, a:Union[np.array, List], b:Union[np.array, List]) -> None:
-        super().__init__(a, b)
-        self.similarity_matrix(LevenshteinRatio)
-
-
-class JaccardSimilarity(BaseSimilarity):
-    def __init__(self, a:Union[np.array, List], b:Union[np.array, List]) -> None:
-        super().__init__(a, b)
-        self.similarity_matrix(self.jaccard_similarity)
-
-    def jaccard_similarity(self, x, y):
-        """ returns the jaccard similarity between two lists """
-        intersection_cardinality = len(set.intersection(*[set(x), set(y)]))
-        union_cardinality = len(set.union(*[set(x), set(y)]))
-        return intersection_cardinality/float(union_cardinality)
-
-
-class SequenceSimilarity(BaseSimilarity):
-    def __init__(self, a:Union[np.array, List], b:Union[np.array, List]) -> None:
-        super().__init__(a, b)
-        self.similarity_matrix(self.sequence_similarity)
-
-    def sequence_similarity(self, x, y):
-        return SequenceMatcher(None, x, y).ratio()
-
-
-class BertTransformerSimilarity(BaseSimilarity):
-    def __init__(self, a:Union[np.array, List], b:Union[np.array, List], model_name:str="all-MiniLM-L6-v2") -> None:
-        super().__init__(a, b)
-        self.model = SentenceTransformer(model_name)
-        self.similarity_matrix(self.transformers_similarity)
+    @property
+    def sim_mat_avg(self):
+        matrix_names = list(self.sim_mat.keys()).copy()
+        matrix_num = len(matrix_names)
+        matrix_tt = self.sim_mat[matrix_names.pop(0)].copy()
+        for matrix_name in matrix_names:
+            matrix_tt += self.sim_mat[matrix_name]
+        return matrix_tt/matrix_num
     
-    def preprocess(self, a, b):
-        doc_function = lambda text: self.model.encode(str(text), convert_to_tensor=True)
-        a = list(map(doc_function, a))
-        b = list(map(doc_function, b))
-        return a, b
-
-    def transformers_similarity(self, x, y):
-        cosine_scores = util.pytorch_cos_sim(x, y)
-        return cosine_scores.item()
-
-
-class SpacyTransformerSimilarity(BaseSimilarity):
-    def __init__(self, a:Union[np.array, List], b:Union[np.array, List], model_name:str="en_core_web_md") -> None:
-        super().__init__(a, b)
-        self.model = spacy.load(model_name)
-        self.similarity_matrix(self.transformers_similarity)
-
-    def preprocess(self, a, b):
-        doc_function = lambda text: self.model(str(text))
-        a = list(map(doc_function, a))
-        b = list(map(doc_function, b))
-        return a, b
-
-    def transformers_similarity(self, x, y):
-        return x.similarity(y)
+    @property
+    def sim_mat_avg_stack(self):
+        return self.mat_sim2stack(self.sim_mat_avg)

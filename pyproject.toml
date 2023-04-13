@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "indeed_similarity"
+version = "0.1.1"
+authors = [
+  { name="Indeed", email="author@example.com" },
+]
+description = "A pipeline to find similarity for 2 dataframes"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "spacy",
+    "pandas",
+    "seaborn",
+    "matplotlib",
+    "Levenshtein",
+    "sentence_transformers"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/CUB-indeed/indeed-similarity"
+"Bug Tracker" = "https://github.com/CUB-indeed/indeed-similarity/issues"
