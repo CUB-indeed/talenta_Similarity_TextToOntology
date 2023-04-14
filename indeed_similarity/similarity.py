@@ -1,7 +1,8 @@
-from typing import List, Union
+from typing import List, Union, Dict
 
 import warnings
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 from .modules import (
@@ -13,20 +14,15 @@ from .modules import (
 )
 
 DEFAULT_SIMPIPELINE = [
-        LevenshteinSimilarity,
-        JaccardSimilarity,
-        SequenceSimilarity,
-        BertTransformerSimilarity,
-        SpacyTransformerSimilarity
-    ]
+    LevenshteinSimilarity,
+    JaccardSimilarity,
+    SequenceSimilarity,
+    BertTransformerSimilarity,
+    SpacyTransformerSimilarity
+]
+
 
 class SimilarityPipeline:
-    """
-    A pipeline for multiple similarity functions
-
-    Args:
-        - similarity_functions: A list of similarity funtions based on BaseSimilarity Class
-    """
     def __init__(
         self,
         a:Union[np.array, List],
@@ -35,6 +31,15 @@ class SimilarityPipeline:
         preprocessing_functions:List = None,
         postprocessing_functions:List = None,
         ) -> None:
+        """A pipeline for calculating multiple text similarities between two lists containing texts.
+
+        Args:
+            a (Union[np.array, List]): The first list containing texts.
+            b (Union[np.array, List]): The second list containing texts.
+            similarity_functions (List, optional): A list of similarity classes based from BaseSimilarity class. Defaults to None.
+            preprocessing_functions (List, optional): A list of preprocessing functions. Defaults to None.
+            postprocessing_functions (List, optional): A list of postprocessing functions. Defaults to None.
+        """
         self.similarity_functions = similarity_functions if similarity_functions is not None else DEFAULT_SIMPIPELINE
         self.a, self.b = a, b
         if preprocessing_functions is not None:
@@ -58,10 +63,20 @@ class SimilarityPipeline:
         self.post_a = list(self.sim_results[self.similarity_functions[0].__name__].df_sim.index)
         self.post_b = list(self.sim_results[self.similarity_functions[0].__name__].df_sim.columns)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.similarity_functions)
 
-    def __call__(self, a:Union[np.array, List], b:Union[np.array, List]):
+    def __call__(self, a:Union[np.array, List], b:Union[np.array, List]) -> Dict[str, pd.DataFrame]:
+        #TODO: Use multi-processing instead of normal for loop.
+        """A function to run the pipeline
+
+        Args:
+            a (Union[np.array, List]): The first list containing texts.
+            b (Union[np.array, List]): The second list containing texts.
+
+        Returns:
+            Dict[pd.DataFrame]: A dictionary in which keys are the name of similarity classes and values are the result.
+        """
         sim_results = {}
         pbar = tqdm(self.similarity_functions)
         for func in pbar:
@@ -70,21 +85,44 @@ class SimilarityPipeline:
         return sim_results
 
     @staticmethod
-    def mat_sim2stack(mat):
+    def mat_sim2stack(mat:pd.DataFrame) -> pd.DataFrame:
+        """Convert from similarity matrix to stack dataframe.
+
+        Args:
+            mat (pd.DataFrame): A similarity matrix dataframe
+
+        Returns:
+            pd.DataFrame: A stack dataframe
+        """
         df = mat.stack().reset_index()
         df.columns = ["onto1", "onto2", "confidence"]
         return df
     
     @property
-    def sim_mat(self):
+    def sim_mat(self) -> Dict[str, pd.DataFrame]:
+        """Similarity matrixes in every similarity classes
+
+        Returns:
+            Dict[pd.DataFrame]: A dictionary in which keys are the name of similarity classes and values are their similarity matrixes.
+        """
         return dict((name, sim_result.df_sim) for name, sim_result in self.sim_results.items())
 
     @property
-    def sim_mat_stack(self):
+    def sim_mat_stack(self) -> Dict[str, pd.DataFrame]:
+        """Similarity stack in every similarity classes
+
+        Returns:
+            Dict[pd.DataFrame]: A dictionary in which keys are the name of similarity classes and values are their similarity stack.
+        """
         return dict((name, self.mat_sim2stack(sim_result.df_sim)) for name, sim_result in self.sim_results.items())
 
     @property
-    def sim_mat_avg(self):
+    def sim_mat_avg(self) -> pd.DataFrame:
+        """An average of similarity matrix of similarity classes
+
+        Returns:
+            pd.DataFrame: A dataframe for average of every similarity classes in a form of similarity matrix.
+        """
         matrix_names = list(self.sim_mat.keys()).copy()
         matrix_num = len(matrix_names)
         matrix_tt = self.sim_mat[matrix_names.pop(0)].copy()
@@ -93,5 +131,10 @@ class SimilarityPipeline:
         return matrix_tt/matrix_num
     
     @property
-    def sim_mat_avg_stack(self):
+    def sim_mat_avg_stack(self) -> pd.DataFrame:
+        """An average of similarity stack of similarity classes
+
+        Returns:
+            pd.DataFrame: A dataframe for average of every similarity classes in a form of similarity stack.
+        """
         return self.mat_sim2stack(self.sim_mat_avg)

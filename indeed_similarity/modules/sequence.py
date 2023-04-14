@@ -7,8 +7,14 @@ from difflib import SequenceMatcher
 
 class SequenceSimilarity(BaseSimilarity):
     def __init__(self, a:Union[np.array, List], b:Union[np.array, List]) -> None:
-        super().__init__(a, b)
-        self.similarity_matrix(self.sequence_similarity)
+        """Sequence similarity between two lists.
 
-    def sequence_similarity(self, x, y):
+        Args:
+            a (Union[np.array, List]): The first list containing strings.
+            b (Union[np.array, List]): The second list containing strings.
+        """
+        super().__init__(a, b)
+        self()
+
+    def similarity_func(self, x:str, y:str) -> float:
         return SequenceMatcher(None, x, y).ratio()
