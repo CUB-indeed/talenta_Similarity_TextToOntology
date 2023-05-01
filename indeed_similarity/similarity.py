@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from .modules.base import SimilarityMatrix
 
 from .modules import (
     LevenshteinSimilarity,
@@ -40,6 +41,12 @@ class SimilarityPipeline:
         self.preprocessing_functions = preprocessing_functions
         self.postprocessing_functions = postprocessing_functions
 
+    def __repr__(self) -> str:
+        return str(self.sim_results)
+
+    def __getitem__(self, key):
+        return self.sim_results[key]
+
     def __len__(self) -> int:
         return len(self.similarity_functions)
 
@@ -56,6 +63,7 @@ class SimilarityPipeline:
         self.pre_a, self.pre_b = self.preprocess(a, b)
         self.sim_results = self.process(self.pre_a, self.pre_b)
         self.post_a, self.post_b = self.postprocess()
+        self.sim_results = self.__avarage(self.sim_results)  # Add average to the sim_results dict
         return self.sim_results
     
     def preprocess(self, a:Union[np.array, List], b:Union[np.array, List]):
@@ -88,8 +96,8 @@ class SimilarityPipeline:
         sim_results = {}
         pbar = tqdm(self.similarity_functions)
         for func in pbar:
-            sim_results[func.__name__] = func(a, b)
             pbar.set_description(f"Processing {func.__name__}")
+            sim_results[func.__name__] = func(a, b)
         return sim_results
     
     def postprocess(self):
@@ -119,56 +127,16 @@ class SimilarityPipeline:
         return post_a, post_b
 
     @staticmethod
-    def mat_sim2stack(mat:pd.DataFrame) -> pd.DataFrame:
-        """Convert from similarity matrix to stack dataframe.
-
-        Args:
-            mat (pd.DataFrame): A similarity matrix dataframe
-
-        Returns:
-            pd.DataFrame: A stack dataframe
-        """
-        df = mat.stack().reset_index()
-        df.columns = ["onto1", "onto2", "confidence"]
-        return df
-    
-    @property
-    def sim_mat(self) -> Dict[str, pd.DataFrame]:
-        """Similarity matrixes in every similarity classes
-
-        Returns:
-            Dict[pd.DataFrame]: A dictionary in which keys are the name of similarity classes and values are their similarity matrixes.
-        """
-        return dict((name, sim_result.df_sim) for name, sim_result in self.sim_results.items())
-
-    @property
-    def sim_mat_stack(self) -> Dict[str, pd.DataFrame]:
-        """Similarity stack in every similarity classes
-
-        Returns:
-            Dict[pd.DataFrame]: A dictionary in which keys are the name of similarity classes and values are their similarity stack.
-        """
-        return dict((name, self.mat_sim2stack(sim_result.df_sim)) for name, sim_result in self.sim_results.items())
-
-    @property
-    def sim_mat_avg(self) -> pd.DataFrame:
+    def __avarage(sim_results) -> pd.DataFrame:
         """An average of similarity matrix of similarity classes
 
         Returns:
             pd.DataFrame: A dataframe for average of every similarity classes in a form of similarity matrix.
         """
-        matrix_names = list(self.sim_mat.keys()).copy()
+        matrix_names = list(sim_results.keys()).copy()
         matrix_num = len(matrix_names)
-        matrix_tt = self.sim_mat[matrix_names.pop(0)].copy()
+        matrix_tt = sim_results[matrix_names.pop(0)].df_sim.copy()
         for matrix_name in matrix_names:
-            matrix_tt += self.sim_mat[matrix_name]
-        return matrix_tt/matrix_num
-    
-    @property
-    def sim_mat_avg_stack(self) -> pd.DataFrame:
-        """An average of similarity stack of similarity classes
-
-        Returns:
-            pd.DataFrame: A dataframe for average of every similarity classes in a form of similarity stack.
-        """
-        return self.mat_sim2stack(self.sim_mat_avg)
+            matrix_tt += sim_results[matrix_name].df_sim
+        sim_results["average"] = SimilarityMatrix(matrix_tt/matrix_num)
+        return sim_results

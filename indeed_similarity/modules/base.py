@@ -1,11 +1,52 @@
-from typing import Union, List, Any, Tuple
+from typing import Union, List, Any, Tuple, Dict
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import plotly.graph_objects as go
+
+SIM_STACK_COLUMNS = ["onto1", "onto2", "confidence"]
+
+class SimilarityMatrix:
+    def __init__(self, df_sim) -> None:
+        self.df_sim = df_sim
+
+    def plot(self, threshold:int=0, plotly=False, **kwargs) -> sns:
+        """A function to plot similarity matrix in heatmap.
+
+        Args:
+            threshold (int, optional): A threshold to filter out confidence score. Defaults to 1.
+
+        Returns:
+            sns: A heatmap of similarity matrix
+        """
+        vmin, vmax = 0, 1
+        assert self.df_sim is not None, "The value of similarity matrix is None"
+        df_plot = self.df_sim[self.df_sim>=threshold]
+        df_plot = df_plot.dropna(axis=0, how="all")
+        df_plot = df_plot.dropna(axis=1, how="all")
+        if plotly:
+            data = go.Heatmap(x=df_plot.columns, y=df_plot.index, z=df_plot.to_numpy(), zmin=vmin, zmax=vmax, **kwargs)
+            return go.Figure(data=data)
+        else:
+            return sns.heatmap(df_plot, vmin=vmin, vmax=vmax, **kwargs)
+    
+    @property
+    def df_sim_stack(self) -> pd.DataFrame:
+        """Convert from similarity matrix to stack dataframe.
+
+        Args:
+            mat (pd.DataFrame): A similarity matrix dataframe
+
+        Returns:
+            pd.DataFrame: A stack dataframe
+        """
+        df = self.df_sim.stack().reset_index()
+        df.columns = SIM_STACK_COLUMNS
+        return df
 
 
-class BaseSimilarity:
+class BaseSimilarity(SimilarityMatrix):
     def __init__(self, a:Union[np.array, List], b:Union[np.array, List]) -> None:
         """A class for calculating text similarities between two lists containing strings.
 
@@ -13,13 +54,13 @@ class BaseSimilarity:
             a (Union[np.array, List]): The first list containing strings.
             b (Union[np.array, List]): The second list containing strings.
         """
-        self.checkInputType(a)
-        self.checkInputType(b)
+        self.___checkInputType(a)
+        self.___checkInputType(b)
         self.a = a
         self.b = b
 
     @staticmethod
-    def checkInputType(value:Union[np.array, List]) -> None:
+    def ___checkInputType(value:Union[np.array, List]) -> None:
         """Check the input type.
 
         Args:
@@ -65,18 +106,6 @@ class BaseSimilarity:
         for i, text1 in enumerate(a):
             for j, text2 in enumerate(b):
                 arr_sim[i, j] = self.similarity_func(text1, text2)
-        self.df_sim = pd.DataFrame(arr_sim, columns=self.b, index=self.a)
-        return self.df_sim
-    
-    def plot(self, threshold:int=0) -> sns:
-        """A function to plot similarity matrix in heatmap.
-
-        Args:
-            threshold (int, optional): A threshold to filter out confidence score. Defaults to 1.
-
-        Returns:
-            sns: A heatmap of similarity matrix
-        """
-        assert self.df_sim is not None, "The value of similarity matrix is None"
-        df_plot = self.df_sim[self.df_sim<=threshold].fillna(0)
-        return sns.heatmap(df_plot)
+        df_sim = pd.DataFrame(arr_sim, columns=self.b, index=self.a)
+        super().__init__(df_sim)
+        return df_sim
