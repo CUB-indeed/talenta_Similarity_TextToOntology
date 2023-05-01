@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name='indeed_similarity',
     packages=find_packages(),
-    version='0.1.3',
+    version='0.1.4',
     description='Test',
     author='Indeed',
     license='MIT',
