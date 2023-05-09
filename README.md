@@ -13,7 +13,7 @@ The similarity score of all functions ranges from 0 (the lowest similarity) and 
 
 ## Similarity Function
 
-1. Jaccard: [ref](https://www.educative.io/answers/what-is-the-jaccard-similarity-measure-in-nlp#)
+1. Jaccard: [[ref]](https://www.educative.io/answers/what-is-the-jaccard-similarity-measure-in-nlp#)
   
 - Jaccard similarity is nothing but the score of intersection of two input strings. In each loop, the algorithm feeds the pairs of string from two inputs into the Jaccard similarity to find the ratio.
 
