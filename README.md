@@ -1,11 +1,10 @@
 # indeed-similarity
-A pipeline to find similarity for 2 list of text
 
 Please see the usage example [here](examples/similairty.ipynb).
 
 ## Description
 
-The indeed-similarity needs two inputs which are two list of strings. It give the output as a dictionary containing all specified functions including average.
+A pipeline to find similarity for 2 list of text. The indeed-similarity needs two inputs which are two list of strings. It give the output as a dictionary containing all specified functions including average.
 
 The similarity score of all functions ranges from 0 (the lowest similarity) and 1 (the highest similarity). However, there might be some case that text similarity score of transformer-based model can be negative.
 
