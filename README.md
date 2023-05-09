@@ -20,7 +20,8 @@ Please note that you can always add a new similarity function by having the Base
 3. Difflib: [ref](https://docs.python.org/3/library/difflib.html)
   In each loop, the algorithm feeds the pairs of string from two inputs into the a function from diff lib called SequenceMatcher to find the similarity score. SequenceMatcher is the algorithm that will loop through of words/phases with four different operator (replace, delete, insert, and equal) in order to turn from string1 into string2. Then it will calculate the similarity score accordingly.
   For example, the inputs are “My name is Mike” and “Hi”. First, we need to replace “My name “ from the first string with “H”. Then do nothing with “i”. Finally, “s Mike” is removed.
-| Operator 	| Item               	| String             	|
+
+| Operator 	| Item (1 --> 2)     	| String (1 --> 2)   	|
 |----------	|--------------------	|--------------------	|
 | replace  	| a[0:8] --> b[0:1]  	| 'My name ' --> 'H' 	|
 | equal    	| a[8:9] --> b[1:2]  	| 'i' --> 'i'        	|
