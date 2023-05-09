@@ -22,12 +22,11 @@ Please note that you can always add a new similarity function by having the Base
   For example, the inputs are “My name is Mike” and “Hi”. First, we need to replace “My name “ from the first string with “H”. Then do nothing with “i”. Finally, “s Mike” is removed.
 
 
-
-| Operator 	| Item (1 --> 2)     	| String (1 --> 2)   	|
-|----------	|--------------------	|--------------------	|
-| replace  	| a[0:8] --> b[0:1]  	| 'My name ' --> 'H' 	|
-| equal    	| a[8:9] --> b[1:2]  	| 'i' --> 'i'        	|
-| delete   	| a[9:15] --> b[2:2] 	| ''s Mike' --> ''   	|
+  | Operator 	| Item (1 --> 2)     	| String (1 --> 2)   	|
+  |----------	|--------------------	|--------------------	|
+  | replace  	| a[0:8] --> b[0:1]  	| 'My name ' --> 'H' 	|
+  | equal    	| a[8:9] --> b[1:2]  	| 'i' --> 'i'        	|
+  | delete   	| a[9:15] --> b[2:2] 	| ''s Mike' --> ''   	|
 
 
 4. S-Bert: [ref](https://www.sbert.net/)
