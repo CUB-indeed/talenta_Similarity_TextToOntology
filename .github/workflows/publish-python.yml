@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   release:
-    uses: actions/.github/workflows/publish-python.yml@main
+    uses: CUB-indeed/actions/.github/workflows/publish-python.yml@main
     with:
       runs-on: "ubuntu-latest"
     secrets: inherit
