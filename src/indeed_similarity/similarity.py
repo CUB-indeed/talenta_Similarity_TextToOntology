@@ -42,7 +42,11 @@ class SimilarityPipeline:
         self.postprocessing_functions = postprocessing_functions
 
     def __repr__(self) -> str:
-        return str(self.sim_results)
+        return (
+            f"SimilarityPipeline(similarity_functions={self.similarity_functions}, "
+            f"preprocessing_functions={self.preprocessing_functions}, "
+            f"postprocessing_functions={self.postprocessing_functions})"
+        )
 
     def __getitem__(self, key):
         return self.sim_results[key]
