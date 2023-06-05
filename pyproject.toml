@@ -22,7 +22,7 @@ dependencies = [
     "seaborn",
     "matplotlib",
     "Levenshtein",
-    "sentence_transformers"
+    "sentence-transformers"
 ]
 
 [project.urls]
