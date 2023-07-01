@@ -47,12 +47,12 @@ class SimilarityMatrix:
 
 
 class BaseSimilarity(SimilarityMatrix):
-    def __init__(self, a:Union[np.array, List], b:Union[np.array, List]) -> None:
+    def __init__(self, a:List[str], b:List[str]) -> None:
         """A class for calculating text similarities between two lists containing strings.
 
         Args:
-            a (Union[np.array, List]): The first list containing strings.
-            b (Union[np.array, List]): The second list containing strings.
+            a (List[str]): The first list containing strings.
+            b (List[str]): The second list containing strings.
         """
         self.___checkInputType(a)
         self.___checkInputType(b)
@@ -60,25 +60,25 @@ class BaseSimilarity(SimilarityMatrix):
         self.b = b
 
     @staticmethod
-    def ___checkInputType(value:Union[np.array, List]) -> None:
+    def ___checkInputType(value:List[str]) -> None:
         """Check the input type.
 
         Args:
-            value (Union[np.array, List]): A list containing strings.
+            value (List[str]): A list containing strings.
         """
-        assert isinstance(value, (list, np.array)), "The input must be either a list or numpy array"
+        assert isinstance(value, (list, np.array)), "The input must be either a list or arraylike"
         assert len(value) > 0 , "The list or numpy array is empthy"
 
-    def preprocess(self, a:Union[np.array, List], b:Union[np.array, List]) -> Tuple[List, List]:
+    def preprocess(self, a:List[str], b:List[str]) -> Tuple[List, List]:
         """A preprocess step to deal with text before calculating similarity matrix.
 
         Args:
-            a (Union[np.array, List]): The first list containing strings.
-            b (Union[np.array, List]): The second list containing strings.
+            a (List[str]): The first list containing strings.
+            b (List[str]): The second list containing strings.
 
         Returns:
-            a (Union[np.array, List]): The first list containing strings.
-            b (Union[np.array, List]): The second list containing strings.
+            a (List[str]): The first list containing strings.
+            b (List[str]): The second list containing strings.
         """
         return a, b
 
@@ -109,3 +109,6 @@ class BaseSimilarity(SimilarityMatrix):
         df_sim = pd.DataFrame(arr_sim, columns=self.b, index=self.a)
         super().__init__(df_sim)
         return df_sim
+
+    def __str__(self) -> str:
+        return str(self.__class__.__name__)
