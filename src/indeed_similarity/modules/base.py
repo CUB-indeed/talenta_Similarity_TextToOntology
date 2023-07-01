@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 import plotly.graph_objects as go
 
-SIM_STACK_COLUMNS = ["onto1", "onto2", "confidence"]
+SIM_STACK_COLUMNS = ["a", "b", "confidence"]
 
 class SimilarityMatrix:
     def __init__(self, df_sim) -> None:
