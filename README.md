@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 # talenta_Similarity_TextToOntology
-=======
 # indeed-similarity
 
 Please see the usage example [here](examples/similairty.ipynb).
@@ -44,4 +42,3 @@ The similarity score of all functions ranges from 0 (the lowest similarity) and 
 5. Spacy: [[ref]](https://spacy.io/usage/linguistic-features)
   
 - Spacy is similar to S-Bert because it is also a transformer based model. In each loop, a string from first list and a string from second list are encoded (vectorised) using a specified model from Spacy. Then cosine similarity (by default) is used to find the text similarity between two encoded strings.
->>>>>>> other/main
