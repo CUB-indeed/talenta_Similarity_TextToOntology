@@ -1,0 +1,6 @@
+from indeed_similarity.modules.base import BaseSimilarity
+from indeed_similarity.modules.levenshtein import LevenshteinSimilarity
+from indeed_similarity.modules.jaccard import JaccardSimilarity
+from indeed_similarity.modules.sequence import SequenceSimilarity
+from indeed_similarity.modules.bert import BertTransformerSimilarity
+from indeed_similarity.modules.spacy import SpacyTransformerSimilarity
