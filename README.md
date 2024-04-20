@@ -1,4 +1,3 @@
-# talenta_Similarity_TextToOntology
 # indeed-similarity
 
 Please see the usage example [here](examples/similairty.ipynb).
