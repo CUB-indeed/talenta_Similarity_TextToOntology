@@ -3,22 +3,22 @@ The Text_To_Ontology.py file is mainly focused on processing text documents and 
 
 # Overall Script Procedure
 1. Library imports
-- Import required Python library for analysis & processing
+    1.1. Import required Python library for analysis & processing
 2. (Pre-processing) Load Pre-trained Model
-- spaCy - advanced natural language processing
+    2.1. spaCy - advanced natural language processing
 3. Input Text Modification
-- Text extraction from file
-- Text split into sentences
-- Sentences cleaned of punctuation, numbers, symbols
+    3.1. Text extraction from file
+    3.2. Text split into sentences
+    3.3. Sentences cleaned of punctuation, numbers, symbols
 4. (Ontology) Loading Ontologies
-- Selection & Usage of specific ontology for procedure
+    4.1. Selection & Usage of specific ontology for procedure
 5. Further work
-- Annotation of text
-- Embeddings generated using Bert & fastText models
+    5.1. Annotation of text
+    5.2. Embeddings generated using Bert & fastText models
 6. Lamba function that calculates cosine similarity between embeddings is invoked
 7. Comparison of Models
-- Results are plotted on graph
-- Performances of Bert & fastText are compared
+    7.1. Results are plotted on graph
+    7.2. Performances of Bert & fastText are compared
 
 # Mason
 MAnufacturing Semantics ONtology, or MASON for short, is an ontology that aims to provide a common semantic framework that supports various applications within the manufacturing sector. 
